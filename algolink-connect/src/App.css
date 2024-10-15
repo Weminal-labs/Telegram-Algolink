@@ -75,6 +75,13 @@
   box-sizing: border-box;
   width: 10em;
 }
+.wallet-buttons input {
+  flex: 1;
+  text-align: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 10em;
+}
 
 .input-group {
   display: flex;
@@ -95,6 +102,10 @@
 .input-group input[disabled] {
   opacity: 0.75;
   color: light-dark(rgba(16, 16, 16, 0.3), rgba(255, 255, 255, 0.3));
+}
+
+.warning-text {
+  color: red;
 }
 
 @keyframes logo-spin {

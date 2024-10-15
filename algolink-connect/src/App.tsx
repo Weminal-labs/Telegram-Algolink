@@ -15,7 +15,7 @@ const walletManager = new WalletManager({
 function App() {
   return (
     <WalletProvider manager={walletManager}>
-      <h1>Connect Wallet</h1>
+      <h1>Algolink</h1>
       <Connect />
     </WalletProvider>
   )

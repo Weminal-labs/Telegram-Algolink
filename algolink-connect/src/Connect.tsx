@@ -14,6 +14,9 @@ export function Connect() {
 
   const [isWebAppReady, setIsWebAppReady] = React.useState(false)
   const [isSending, setIsSending] = React.useState(false)
+  const [isCustomAmount, setIsCustomAmount] = React.useState(false)
+  const [isWanring, setIsWanring] = React.useState(false)
+  const [amount, setAmount] = React.useState(0);
 
   React.useEffect(() => {
     if (window.Telegram?.WebApp) {
@@ -131,7 +134,7 @@ export function Connect() {
       {wallets.map((wallet) => (
         <div key={wallet.id} className="wallet-group">
           <h4>
-            {wallet.metadata.name} {wallet.isActive ? 'active' : ''}
+            {wallet.metadata.name} {wallet.isActive ? 'Wallet active' : ''}
           </h4>
 
           <div className="wallet-buttons">
@@ -167,22 +170,78 @@ export function Connect() {
             </select>
             
           )}
-          {wallet.isActive && wallet.accounts.length > 0 && (
+          
+          
+          <div className='wallet-buttons'>
+            {wallet.isActive && wallet.accounts.length > 0 && (
+              <button 
+                type="button"
+                onClick={() => {
+                  sendTransaction(1);
+                }}
+                disabled={!isConnectDisabled(wallet) || isSending}
+              >
+                {isSending ? 'Sending Transaction...' : 'Send 1 Algo'}
+              </button>
+            )}
+
+            {wallet.isActive && wallet.accounts.length > 0 && (
+              <button 
+                type="button"
+                onClick={() => {
+                  sendTransaction(5);
+                }}
+                disabled={!isConnectDisabled(wallet) || isSending}
+              >
+                {isSending ? 'Sending Transaction...' : 'Send 5 Algo'}
+              </button>
+            )}
+          </div>
+          
+          {/* Custom amount */}
+          {wallet.isActive && wallet.accounts.length > 0  && !isCustomAmount && (
             <button 
-            
               type="button"
               onClick={() => {
-                sendTransaction(1);
-                
+                setIsCustomAmount(!isCustomAmount)
               }}
-              disabled={!isConnectDisabled(wallet) || isSending}
             >
-              {isSending ? 'Sending Transaction...' : 'Send 1 Algo'}
-            
+              Other amount
             </button>
-            
           )}
 
+          <div className='wallet-buttons'>
+            {wallet.isActive && wallet.accounts.length > 0 && isCustomAmount && (
+              <button 
+                type="button"
+                onClick={() => {
+                  if (amount > 0) {
+                    setIsWanring(false);
+                    sendTransaction(amount);
+                  } else {
+                    setIsWanring(true);
+                  }
+                }}
+                disabled={!isConnectDisabled(wallet) || isSending}
+              >
+                {isSending ? 'Sending Transaction...' : 'Send '+amount+' Algo'}
+              </button>
+            )}
+            {wallet.isActive && wallet.accounts.length > 0 && isCustomAmount && (
+              <input
+                type="number"
+                placeholder="Amount (in Algos)"
+                value={amount}
+                onChange={(e) => setAmount(Number(e.target.value))}
+                disabled={!isConnectDisabled(wallet) || isSending}
+              ></input>
+            )}
+          </div>
+          {wallet.isActive && wallet.accounts.length > 0 && isWanring && (  
+            <div className='warning-text'>
+              input amount not valid
+            </div>
+          )}
 
         </div>
       ))}

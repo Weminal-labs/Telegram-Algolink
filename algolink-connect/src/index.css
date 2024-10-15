@@ -59,6 +59,7 @@ button:disabled {
 }
 
 input[type='text'],
+input[type='number'],
 input[type='email'] {
   border-radius: 8px;
   border: 1px solid #1a1a1a;
@@ -70,6 +71,7 @@ input[type='email'] {
   color: #ffffff;
   transition: border-color 0.25s;
 }
+
 
 select {
   border-radius: 8px;
