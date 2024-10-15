@@ -1,14 +1,19 @@
 import { NetworkId, useWallet, type Wallet } from '@txnlab/use-wallet-react'
 import * as React from 'react'
+import algosdk from 'algosdk'
 
 export function Connect() {
   const {
+    algodClient,
     activeNetwork,
+    activeAddress,
     setActiveNetwork,
+    transactionSigner,
     wallets
   } = useWallet()
 
   const [isWebAppReady, setIsWebAppReady] = React.useState(false)
+  const [isSending, setIsSending] = React.useState(false)
 
   React.useEffect(() => {
     if (window.Telegram?.WebApp) {
@@ -57,6 +62,40 @@ export function Connect() {
   if (!isWebAppReady) {
     return <div>Loading Telegram Web App...</div>;
   }
+
+  const sendTransaction = async (amount: number) => {
+    try {
+      if (!activeAddress) {
+        throw new Error('[App] No active account')
+      }
+
+      const atc = new algosdk.AtomicTransactionComposer()
+      const suggestedParams = await algodClient.getTransactionParams().do()
+      const transaction = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        from: activeAddress,
+        to: 'ORX7PDVSFMJ3RQLW5LWDQI66ZJAN3FAYYEBZYDKDCEQU33IPS3RKCNO64A',
+        amount: amount*1000000,
+        suggestedParams
+      })
+
+      atc.addTransaction({ txn: transaction, signer: transactionSigner })
+
+      setIsSending(true)
+
+      const result = await atc.execute(algodClient, 4)
+
+      console.info(`[App] ✅ Successfully sent transaction!`, {
+        confirmedRound: result.confirmedRound,
+        txIDs: result.txIDs
+      })
+
+    } catch (error) {
+      console.error('[App] Error signing transaction:', error)
+    } finally {
+      setIsSending(false)
+    }
+  }
+
 
   return (
     <div>
@@ -126,23 +165,25 @@ export function Connect() {
                 </option>
               ))}
             </select>
+            
           )}
-          {/* <button 
+          {wallet.isActive && wallet.accounts.length > 0 && (
+            <button 
+            
               type="button"
               onClick={() => {
-                if (window.Telegram?.WebApp) {
-                  window.Telegram.WebApp.sendData(JSON.stringify({
-                    action: 'wallet_connected',
-                    address: wallet.accounts[0].address
-                  }));
-                  
-                }
+                sendTransaction(1);
                 
               }}
-              disabled={!isConnectDisabled(wallet)}
+              disabled={!isConnectDisabled(wallet) || isSending}
             >
-              send Data
-            </button> */}
+              {isSending ? 'Sending Transaction...' : 'Send 1 Algo'}
+            
+            </button>
+            
+          )}
+
+
         </div>
       ))}
     </div>

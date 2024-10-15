@@ -23,13 +23,13 @@ bot.start((ctx) => {
     
 });
 
-bot.command('connect', async (ctx) => {
+bot.command('blink', async (ctx) => {
     // Assume we have a function to get the user's wallet state
     
 
     if (!!!ADDRESS) {
         ctx.reply('Click button to open Pera Wallet Mobile and connect', Markup.inlineKeyboard([
-            [Markup.button.url('Connect Pera Wallet', 'https://7c4a-2a09-bac1-7a80-10-00-17-16c.ngrok-free.app')]
+            [Markup.button.url('Blink Pera Wallet', 'https://7c4a-2a09-bac1-7a80-10-00-17-16c.ngrok-free.app')]
         ]));
         
 
