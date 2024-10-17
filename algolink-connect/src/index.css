@@ -58,6 +58,11 @@ button:disabled {
   cursor: default;
 }
 
+input:disabled {
+  opacity: 0.75;
+  cursor: default;
+}
+
 input[type='text'],
 input[type='number'],
 input[type='email'] {
@@ -106,7 +111,6 @@ select {
   button {
     background-color: #f9f9f9;
   }
-  input[type='text'],
   input[type='email'],
   select {
     background-color: #f9f9f9;

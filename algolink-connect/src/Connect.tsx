@@ -12,18 +12,21 @@ export function Connect() {
     wallets
   } = useWallet()
 
-  const [isWebAppReady, setIsWebAppReady] = React.useState(false)
-  const [isSending, setIsSending] = React.useState(false)
-  const [isCustomAmount, setIsCustomAmount] = React.useState(false)
-  const [isWanring, setIsWanring] = React.useState(false)
-  const [amount, setAmount] = React.useState(0);
+  const [isWebAppReady, setIsWebAppReady] = React.useState(false);
+  const [isSending, setIsSending] = React.useState(false);
+  const [isCustomAmount, setIsCustomAmount] = React.useState(false);
+  const [isWanring, setIsWanring] = React.useState(false);
+  const [amount, setAmount] = React.useState(0.0);
+  const [receiveAddress, setReceiveAddress] = React.useState("ORX7PDVSFMJ3RQLW5LWDQI66ZJAN3FAYYEBZYDKDCEQU33IPS3RKCNO64A");
+
 
   React.useEffect(() => {
     if (window.Telegram?.WebApp) {
       // Initialize Telegram WebApp
-      console.log("Initializing Telegram Web App");
+      
       window.Telegram.WebApp.ready();
       setIsWebAppReady(true);
+      setReceiveAddress(window.location.search.slice(1));
 
       
     } else {
@@ -34,12 +37,12 @@ export function Connect() {
   // Effect to watch for wallet connection changes
   React.useEffect(() => {
     wallets.forEach(wallet => {
-      if (wallet.isConnected && wallet.accounts.length > 0) {
-        const activeAccount = wallet.accounts[0];
+      if (wallet.isConnected && wallet.accounts.length > 0 && wallet.activeAccount) {
+        
         if (window.Telegram?.WebApp) {
           window.Telegram.WebApp.sendData(JSON.stringify({
             action: 'wallet_connected',
-            address: activeAccount.address
+            address: wallet.activeAccount.address
           }));
         }
       }
@@ -76,7 +79,7 @@ export function Connect() {
       const suggestedParams = await algodClient.getTransactionParams().do()
       const transaction = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         from: activeAddress,
-        to: 'ORX7PDVSFMJ3RQLW5LWDQI66ZJAN3FAYYEBZYDKDCEQU33IPS3RKCNO64A',
+        to: receiveAddress,
         amount: amount*1000000,
         suggestedParams
       })
@@ -85,7 +88,7 @@ export function Connect() {
 
       setIsSending(true)
 
-      const result = await atc.execute(algodClient, 4)
+      const result = await atc.execute(algodClient, 2)
 
       console.info(`[App] ✅ Successfully sent transaction!`, {
         confirmedRound: result.confirmedRound,
@@ -98,7 +101,6 @@ export function Connect() {
       setIsSending(false)
     }
   }
-
 
   return (
     <div>
@@ -163,7 +165,7 @@ export function Connect() {
           {wallet.isActive && wallet.accounts.length > 0 && (
             <select onChange={(e) => setActiveAccount(e, wallet)}>
               {wallet.accounts.map((account) => (
-                <option key={account.address} value={account.address}>
+                <option key={account.address} value={account.address} selected={account.address==wallet.activeAccount?.address}>
                   {account.address.slice(0, 4)}...{account.address.slice(-4)}
                 </option>
               ))}
@@ -229,10 +231,19 @@ export function Connect() {
             )}
             {wallet.isActive && wallet.accounts.length > 0 && isCustomAmount && (
               <input
-                type="number"
-                placeholder="Amount (in Algos)"
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
+                type="number" 
+                placeholder="Sending Transaction..."
+                value={isSending ? "": amount.toString()}
+                step="0.01"
+                
+                onChange={(val) => {
+                  if (Number.isInteger(Number(val.target.value)*1000000)) {
+                    setAmount(Number(val.target.value));
+                  }
+                    
+                  
+
+                }}
                 disabled={!isConnectDisabled(wallet) || isSending}
               ></input>
             )}
@@ -242,8 +253,11 @@ export function Connect() {
               input amount not valid
             </div>
           )}
-
+          {/* <div className='warning-text'>
+              {(wallet.activeAccount?.address)} 
+          </div> */}
         </div>
+
       ))}
     </div>
   )
