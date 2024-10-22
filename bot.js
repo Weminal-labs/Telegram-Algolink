@@ -1,5 +1,5 @@
 // import library
-const { Agent } = require("node:https");
+const axios = require('axios');
 const { Telegraf, Markup  } = require("telegraf");
 const { message } = require("telegraf/filters");
 require('dotenv').config()
@@ -7,8 +7,7 @@ require('dotenv').config()
 // init bot 
 const token = process.env.BOT;
 const bot = new Telegraf(token);
-const host = "https://1f3b-2a09-bac5-d46d-16dc-00-247-fb.ngrok-free.app";
-
+const host = "https://rare-dodo-frank.ngrok-free.app";
 // bot handlers
 bot.start(async (ctx) => {
     ctx.reply("Hello " + ctx.from.first_name + "!");
@@ -24,36 +23,43 @@ bot.command('connect', async (ctx) => {
     ]));
 });
 
-// https://1f3b-2a09-bac5-d46d-16dc-00-247-fb.ngrok-free.app/algolink?ORX7PDVSFMJ3RQLW5LWDQI66ZJAN3FAYYEBZYDKDCEQU33IPS3RKCNO64A
-// https://1f3b-2a09-bac5-d46d-16dc-00-247-fb.ngrok-free.app/algolink?DTUA424DKCJYPHF5MLO6CL4R2BWOTH2GLOUQA257K5I7G65ENHSDJ4TTTE
+// https://rare-dodo-frank.ngrok-free.app/algolink?ORX7PDVSFMJ3RQLW5LWDQI66ZJAN3FAYYEBZYDKDCEQU33IPS3RKCNO64A
+// https://rare-dodo-frank.ngrok-free.app/algolink?DTUA424DKCJYPHF5MLO6CL4R2BWOTH2GLOUQA257K5I7G65ENHSDJ4TTTE
 
-bot.command('create', async (ctx) => {
-    ctx.reply('I need your address to create a link to you. Please send me your pera wallet address!');
-    await new Promise(resolve => setTimeout(resolve, 300));
-    ctx.reply(ctx.message.message_id)
-});
+/* bot.command('create', async (ctx) => {
+    
+    const response = await axios.get("http://localhost:80/api/actions/transfer-apt");
+    console.log(response.data.title);
+}); */
 
 bot.on(message("text"), async (ctx) => {
     const messageText = ctx.message.text;
     const urlRegex = /https*:\/\/([A-Za-z0-9]+(-[A-Za-z0-9]+)+)\.ngrok-free\.app\/algolink\?\w{58}$/mis;
-     
 
     if (messageText.startsWith("/")) {
         return;
     }
 
-    if (urlRegex.test(messageText)) {
+    if (urlRegex.test(messageText) || urlRegexLocal.test(messageText)) {
         const parsedUrl = new URL(messageText);
         const urlHost = parsedUrl.hostname;
         console.log(urlHost);
         console.log(new URL(host).hostname);
 
         if (urlHost==new URL(host).hostname){
+            const response = await axios.get("http://localhost:80/api/actions/transfer-apt");
             ctx.reply("Your've received an algolink");
-            await new Promise(resolve => setTimeout(resolve, 300));
-            ctx.reply('Click button to open Algolink and send Algo', Markup.inlineKeyboard([
-                [Markup.button.url('Algolink', parsedUrl)]
-            ]));
+            await new Promise(resolve => setTimeout(resolve, 100));
+            ctx.replyWithPhoto(
+                { url: response.data.icon },
+                {
+                  caption: response.data.description,
+                  parse_mode: "Markdown",
+                  ...Markup.inlineKeyboard([
+                    Markup.button.url('Algolink', parsedUrl),
+                  ]),
+                }
+              );
         }
     }
 });

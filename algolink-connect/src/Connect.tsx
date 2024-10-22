@@ -14,11 +14,14 @@ export function Connect() {
 
   const [isWebAppReady, setIsWebAppReady] = React.useState(false);
   const [isSending, setIsSending] = React.useState(false);
+  const [isSuccessTranfer, setIsSuccessTranfer] = React.useState(false);
   const [isCustomAmount, setIsCustomAmount] = React.useState(false);
+  const [isCreateLink, setIsCreateLink] = React.useState(false);
   const [isWanring, setIsWanring] = React.useState(false);
   const [amount, setAmount] = React.useState(0.0);
+  const [link, setLink] = React.useState("");
   const [receiveAddress, setReceiveAddress] = React.useState("ORX7PDVSFMJ3RQLW5LWDQI66ZJAN3FAYYEBZYDKDCEQU33IPS3RKCNO64A");
-
+  const [txIDs, setTxIDs] = React.useState("");
 
   React.useEffect(() => {
     if (window.Telegram?.WebApp) {
@@ -69,6 +72,10 @@ export function Connect() {
     return <div>Loading Telegram Web App...</div>;
   }
 
+  const createAlgolink = () => {
+    return "https://rare-dodo-frank.ngrok-free.app"+"/algolink?"+activeAddress;
+  }
+
   const sendTransaction = async (amount: number) => {
     try {
       if (!activeAddress) {
@@ -86,7 +93,8 @@ export function Connect() {
 
       atc.addTransaction({ txn: transaction, signer: transactionSigner })
 
-      setIsSending(true)
+      setIsSending(true);
+      setIsSuccessTranfer(false);
 
       const result = await atc.execute(algodClient, 2)
 
@@ -94,6 +102,8 @@ export function Connect() {
         confirmedRound: result.confirmedRound,
         txIDs: result.txIDs
       })
+      setTxIDs(result.txIDs.toString())
+      setIsSuccessTranfer(true);
 
     } catch (error) {
       console.error('[App] Error signing transaction:', error)
@@ -207,6 +217,7 @@ export function Connect() {
               onClick={() => {
                 setIsCustomAmount(!isCustomAmount)
               }}
+              disabled={isSending}
             >
               Other amount
             </button>
@@ -256,6 +267,59 @@ export function Connect() {
           {/* <div className='warning-text'>
               {(wallet.activeAccount?.address)} 
           </div> */}
+
+          {/* Create view transaction */}
+          {wallet.isActive && wallet.accounts.length > 0  && isSuccessTranfer && (
+            <button 
+              type="button"
+              onClick={() => {
+                
+                window.open('https://testnet.explorer.perawallet.app/tx/'+txIDs,'_blank')
+              }}
+              disabled={isSending}
+            >
+              View Details Transaction
+            </button>
+          )}
+
+          {/* Create algolink */}
+          {wallet.isActive && wallet.accounts.length > 0  && !isCreateLink && (
+            <button 
+              type="button"
+              onClick={() => {
+                setIsCreateLink(!isCreateLink);
+                setLink(createAlgolink());
+              }}
+              disabled={isSending}
+            >
+              Create my Algolink
+            </button>
+          )}
+
+          <div className='wallet-buttons'>
+            {wallet.isActive && wallet.accounts.length > 0 && isCreateLink && (
+              <h5>
+                {link.slice(0,10)}..{link.slice(-10)}
+              </h5>
+            )}
+            {wallet.isActive && wallet.accounts.length > 0 && isCreateLink && (
+              <button 
+                type="button"
+                onClick={ async () => {
+                  try {
+                    await navigator.clipboard.writeText(link);
+                    console.log('Content copied to clipboard');
+                  } catch (err) {
+                    console.error('Failed to copy: ', err);
+                  }
+                }}
+                disabled={isSending}
+              >
+                Copy
+              </button>
+            )}
+            
+          </div>
         </div>
 
       ))}
